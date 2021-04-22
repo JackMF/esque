@@ -1,0 +1,15 @@
+*.beam
+*.app
+_rel/
+deps/
+erl_crash.dump
+*.d
+*.plt
+elvis
+xrefr
+ebin
+cover
+.idea
+.erlang.mk/
+test/ct.cover.spec
+doc/
