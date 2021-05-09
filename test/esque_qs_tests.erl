@@ -30,34 +30,39 @@ all_test_() ->
 
 
 shard() ->
+	%Checking the sharding logic works
 	?assertEqual(table_name_0, esque_qs:shard(table_name, 0)),
 	?assertEqual(table_name_1, esque_qs:shard(table_name, 01)),
 	?assertEqual('table_name_-1', esque_qs:shard(table_name, -1)).
 
 
 new() ->
+	%When we create a q with three partitions....
 	esque_qs:new(q_name, 3),
 
+	%...we should make 3 ets tables corresponding to the ets tables
 	[?assertEqual([], ets:tab2list(q_name_0)),
 	 ?assertEqual([], ets:tab2list(q_name_1)),
 	 ?assertEqual([], ets:tab2list(q_name_2))
 	 ],
-
-	ets:delete(q_name_0),
-	ets:delete(q_name_1),
-	ets:delete(q_name_2).
+	 esque_qs:delete(q_name, 3).
+	
 
 put() ->
+	%Making a q with one partition
 	esque_qs:new(q_name, 1),
 
-	esque_qs:put(q_name, 0, <<"some_key1">>, <<"some_value1">>),
-	?assertEqual([{0, <<"some_key1">>, <<"some_value1">>}], ets:lookup(q_name_0, 0)),
 
+	%When we put into a q a key and value...
+	esque_qs:put(q_name, 0, <<"some_key1">>, <<"some_value1">>),
+
+	%We should find it in the ets table...
+	?assertEqual([{0, <<"some_key1">>, <<"some_value1">>}], ets:lookup(q_name_0, 0)),
 
 	esque_qs:put(q_name, 0, <<"some_key2">>, <<"some_value2">>),
 	?assertEqual([{1, <<"some_key2">>, <<"some_value2">>}], ets:lookup(q_name_0, 1)),
 
-	ets:delete(q_name_0).
+	esque_qs:delete(q_name, 1).
 
 all_messages_from_offset() ->
 	esque_qs:new(q_name, 1),
@@ -69,10 +74,11 @@ all_messages_from_offset() ->
 			      {1, <<"some_key2">>, <<"some_value2">>}
 			      ], esque_qs:all_messages_from_offset(q_name, 0, 0)),
 
-		?assertEqual([
+	?assertEqual([
 			      {1, <<"some_key2">>, <<"some_value2">>}
 			      ], esque_qs:all_messages_from_offset(q_name, 0, 1)),
-	ets:delete(q_name_0).
+	
+	esque_qs:delete(q_name, 1).
 
 all_from_non_existing_offset() ->
 	esque_qs:new(q_name, 1),
@@ -81,5 +87,6 @@ all_from_non_existing_offset() ->
 	esque_qs:put(q_name, 0, <<"some_key2">>, <<"some_value2">>),
 
 	?assertEqual([], esque_qs:all_messages_from_offset(q_name, 0, 3)),
-	?assertEqual([], esque_qs:all_messages_from_offset(q_name, 0, -1)).
-	
+	?assertEqual([], esque_qs:all_messages_from_offset(q_name, 0, -1)),
+
+	esque_qs:delete(q_name, 1).
