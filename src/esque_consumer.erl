@@ -1,5 +1,8 @@
 -module(esque_consumer).
 -behaviour(gen_statem).
+-include_lib("consumer_state.hrl").
+
+%
 
 %API
 -export([start_consumer/3,
@@ -12,12 +15,6 @@
 	listen/3
 ]).
 
--record(state, {
-   group :: binary(),
-   topic :: atom(),
-   partition :: non_neg_integer(),
-   next_offset_to_send_from :: non_neg_integer()
-}).
 	
 %%Api
 send(Topic, Partition, Msgs) ->

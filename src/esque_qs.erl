@@ -31,8 +31,6 @@ delete(QName, Partitions) ->
 			true= ets:delete(TableName)
 		end, lists:seq(0, Partitions-1)).
 
-
-
 -spec put(QName :: atom(), Partition :: integer(), 
 		 Key :: binary(), Value :: binary()) -> ok.
 put(QName, Partition, Key, Value) ->
