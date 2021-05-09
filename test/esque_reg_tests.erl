@@ -26,7 +26,6 @@ all_test_() ->
         ]
     }.
 
-
 store_look_up() ->
     %When no consumers are regs then there should be no consumers
     ?assertEqual([], esque_reg:get_consumers(?TEST_TOPIC, 0)),

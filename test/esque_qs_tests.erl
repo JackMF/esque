@@ -16,8 +16,6 @@ all_test_() ->
         fun test_setup/0,
         fun test_teardown/1,
         [
-            % Simplest possible. One single assertion.
-            % Note the presence of the "_" prefix.
 			{"sharding tables", fun shard/0},
 			{"new table test", fun new/0},
 			{"put item in q", fun put/0},
