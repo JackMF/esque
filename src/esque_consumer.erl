@@ -2,7 +2,7 @@
 -behaviour(gen_statem).
 
 %API
--export([start_link/3,
+-export([start_consumer/3,
 		send/3]).
 %% Callbacks
 -export([
@@ -18,21 +18,23 @@
    partition :: non_neg_integer(),
    next_offset_to_send_from :: non_neg_integer()
 }).
--define(SERVER(Topic, Partition), {via, gproc, {n, l, {Topic, Partition}}}).
-
 	
 %%Api
 send(Topic, Partition, Msgs) ->
-	gen_statem:cast(
-		{via, gproc, {n, l, {Topic, Partition}}},
-		{send, Msgs}). 
-
+	lists:foreach(
+		fun(ConsumerPid) -> 
+			gen_statem:cast(ConsumerPid, {send, Msgs}) 
+		end, 
+		esque_reg:get_consumers(Topic, Partition)
+	).
 
 callback_mode() ->
     [state_functions, state_enter].
 
-start_link(Group, Topic, Partition) ->
-	gen_statem:start_link(?SERVER(Topic, Partition), ?MODULE, [Group, Topic, Partition], []).
+start_consumer(Group, Topic, Partition) ->
+	{ok, Pid} = gen_statem:start_link(?MODULE, [Group, Topic, Partition], []),
+	true = esque_reg:reg_consumer(Topic, Partition, Group, Pid),
+	{ok, Pid}.
 
 init([Group, Topic, Partition]) ->
     process_flag(trap_exit, true),

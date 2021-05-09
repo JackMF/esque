@@ -10,6 +10,7 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, {}).
 
 init({}) ->
+    esque_reg:init(), %Starting consumer registry
     {ok,
         {
             % Restart strategy

@@ -2,6 +2,7 @@
 
 -export([
 	new/2,
+	delete/2,
 	put/4,
 	shard/2,
 	all_messages_from_offset/3
@@ -21,6 +22,16 @@ new(QName, Partitions) ->
 			TableName = shard(QName, Partition),
 			TableName = ets:new(TableName, Opts)
 		end, lists:seq(0, Partitions-1)).
+
+-spec delete(QName :: atom(), Partitions :: integer()) -> ok.
+delete(QName, Partitions) ->
+	lists:foreach(
+		fun(Partition) ->
+			TableName = shard(QName, Partition),
+			true= ets:delete(TableName)
+		end, lists:seq(0, Partitions-1)).
+
+
 
 -spec put(QName :: atom(), Partition :: integer(), 
 		 Key :: binary(), Value :: binary()) -> ok.

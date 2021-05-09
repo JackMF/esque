@@ -23,7 +23,7 @@ init({}) ->
     },
     Children = [#{
         id => exotic,
-        start => {esque_consumer, start_link, []},
+        start => {esque_consumer, start_consumer, []},
         restart => permanent,
         type => worker
     }],
