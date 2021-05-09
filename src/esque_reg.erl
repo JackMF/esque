@@ -18,18 +18,18 @@
 
 init() ->
     Opts = [set, public, named_table, {read_concurrency, true}, {write_concurrency, false}],
-    ets:new(?TABLE_NAME, Opts).
+    ?TABLE_NAME = ets:new(?TABLE_NAME, Opts).
 
 shutdown() ->
-    ets:delete(?TABLE_NAME).
+    true = ets:delete(?TABLE_NAME).
 
 -spec reg_consumer(Topic :: topic(), Partition :: partition(), Group :: group(), Pid:: pid()) -> true.
 reg_consumer(Topic, Partition, Group, Pid) ->
-    ets:insert(?TABLE_NAME, {{Topic, Partition, Group}, Pid}).
+    true = ets:insert(?TABLE_NAME, {{Topic, Partition, Group}, Pid}).
 
 -spec unreg_consumer(Topic :: topic(), Partition :: partition(), Group :: group()) -> true.
 unreg_consumer(Topic, Partition, Group) ->
-    ets:delete(?TABLE_NAME, {{Topic, Partition, Group}}).
+    true = ets:delete(?TABLE_NAME, {{Topic, Partition, Group}}).
 
 
 -spec get_consumers(Topic :: topic(), Partition :: partition()) -> list(pid()).
