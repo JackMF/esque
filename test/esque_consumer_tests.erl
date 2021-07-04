@@ -39,7 +39,7 @@ start_consumer() ->
 
 start_and_receive() ->
     {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, 0).
-
+    
 
 
 
