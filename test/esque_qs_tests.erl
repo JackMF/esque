@@ -25,14 +25,11 @@ all_test_() ->
         ]
     }.
 
-
-
 shard() ->
 	%Checking the sharding logic works
-	?assertEqual(table_name_0, esque_qs:shard(table_name, 0)),
+    ?assertEqual(table_name_0, esque_qs:shard(table_name, 0)),
 	?assertEqual(table_name_1, esque_qs:shard(table_name, 01)),
 	?assertEqual('table_name_-1', esque_qs:shard(table_name, -1)).
-
 
 new() ->
 	%When we create a q with three partitions....
