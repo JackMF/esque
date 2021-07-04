@@ -5,6 +5,7 @@
     reg_consumer/4,
     unreg_consumer/3,
     update_offset/4,
+    get_consumers_offset/3,
     get_consumers_pids/2
     ]).
 
@@ -38,6 +39,11 @@ unreg_consumer(Topic, Partition, Group) ->
 -spec update_offset(Topic :: topic(), Partition :: partition(), Group :: group(), Offset :: offset()) -> true.
 update_offset(Topic, Partition, Group, Offset) ->
     ets:update_element(?TABLE_NAME,{Topic, Partition, Group}, {?OFFSET_POS, Offset}).
+
+-spec get_consumers_offset(Topic :: topic(), Partition :: partition(), Group :: group()) -> offset().
+get_consumers_offset(Topic, Partition, Group) ->
+    {_, _, Offset} =ets:lookup({Topic, Partition, Group}),
+    Offset.
 
 -spec get_consumers_pids(Topic :: topic(), Partition :: partition()) -> list(pid()).
 get_consumers_pids(Topic, Partition) ->

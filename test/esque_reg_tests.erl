@@ -22,6 +22,7 @@ all_test_() ->
         fun test_teardown/1,
         [
             {"store and lookup pid", fun store_look_up/0}
+            % {"update and get offset", fun update_offset/0}
 
         ]
     }.
@@ -34,7 +35,9 @@ store_look_up() ->
 
     %now we have started a consumer we should find some conusmers
     ?assertEqual([Pid], esque_reg:get_consumers_pids(?TEST_TOPIC, 0)).
+    
 
+% update_offset() -> 
 
 
 

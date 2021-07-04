@@ -12,7 +12,8 @@
     callback_mode/0,
     init/1,
     catch_up/3,
-    listen/3
+    listen/3,
+    terminate/2
 ]).
 
 %%Api
@@ -23,6 +24,8 @@ send(Topic, Partition, Msgs) ->
         end, 
         esque_reg:get_consumers_pids(Topic, Partition)
     ).
+
+
 
 callback_mode() ->
     [state_functions, state_enter].
@@ -55,4 +58,7 @@ send_batch(Rows) ->
     io:format("Send rows ~p", [Rows]).
 
 
-
+terminate(_Reason, State) ->
+    io:format("~p was terminated~n", [State]),
+    ok.
+    
