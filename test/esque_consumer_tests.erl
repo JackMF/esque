@@ -31,14 +31,19 @@ all_test_() ->
 
 start_consumer() ->
     {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, 0),
-    {InState, #state{topic=Topic, partition=Partition, group=Group}} = sys:get_state(Pid),
+    {InState, #state{topic=Topic, partition=Partition, group=Group, last_offset=LastOffset}} = sys:get_state(Pid),
     ?assertEqual(listen, InState), %check the consumer goes into the listening state
     ?assertEqual(?TEST_TOPIC, Topic), %check the consuemr is listening to the correct topic
     ?assertEqual(?TEST_GROUP, Group), %check the consumer is in the correct group
+    ?assertEqual(-1, LastOffset), %as the topic has no message this last offset is -1
     ?assertEqual(0, Partition). 
 
 start_and_receive() ->
-    {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, 0).
+    {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, 0),
+    esque_qs:put(?TEST_TOPIC, 0, <<"key">>, <<"value">>),
+    {InState, #state{last_offset=LastOffset}} = sys:get_state(Pid),
+    ?assertEqual(0, LastOffset). %as we have put 1 msg the last offset in the consumer should be 0. i.e we have recieved the 0th msg
+    
     
 
 
