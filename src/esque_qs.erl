@@ -37,7 +37,7 @@ put(QName, Partition, Key, Value) ->
 	TableName = shard(QName, Partition),
 	CurrentOffSet = get_last_offset(TableName), 
 	true = ets:insert(TableName, {CurrentOffSet + 1, Key, Value}),
-	esque_consumer:send(QName, Partition, [{Key, Value}]).
+	esque_consumer:send(QName, Partition, [{CurrentOffSet + 1, Key, Value}]).
 
 
 -spec get_last_offset(TableName :: atom()) -> offset().
