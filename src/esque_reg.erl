@@ -6,7 +6,7 @@
     unreg_consumer/3,
     update_offset/4,
     get_consumers_offset/3,
-    get_consumers_pids/2
+    get_pids/2
     ]).
 
 
@@ -45,6 +45,7 @@ get_consumers_offset(Topic, Partition, Group) ->
     {_, _, Offset} =ets:lookup({Topic, Partition, Group}),
     Offset.
 
--spec get_consumers_pids(Topic :: topic(), Partition :: partition()) -> list(pid()).
-get_consumers_pids(Topic, Partition) ->
+-spec get_pids(Topic :: topic(), Partition :: partition()) -> list(pid()).
+get_pids(Topic, Partition) ->
+    %get alll the pids for a topicm, partition
     lists:flatten(ets:match(?TABLE_NAME, {{Topic, Partition, '_'}, '$1', '_'})).

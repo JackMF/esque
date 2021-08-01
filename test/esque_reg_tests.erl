@@ -29,12 +29,12 @@ all_test_() ->
 
 store_look_up() ->
     %When no consumers are regs then there should be no consumers
-    ?assertEqual([], esque_reg:get_consumers_pids(?TEST_TOPIC, 0)),
+    ?assertEqual([], esque_reg:get_pids(?TEST_TOPIC, 0)),
     %start a consumer
     {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, 0),
 
     %now we have started a consumer we should find some conusmers
-    ?assertEqual([Pid], esque_reg:get_consumers_pids(?TEST_TOPIC, 0)).
+    ?assertEqual([Pid], esque_reg:get_pids(?TEST_TOPIC, 0)).
     
 
 % update_offset() -> 

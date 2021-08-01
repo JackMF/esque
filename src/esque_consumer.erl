@@ -22,9 +22,8 @@ send(Topic, Partition, Msgs) ->
         fun(ConsumerPid) -> 
             gen_statem:cast(ConsumerPid, {send, Msgs}) 
         end, 
-        esque_reg:get_consumers_pids(Topic, Partition)
+        esque_reg:get_pids(Topic, Partition)
     ).
-
 
 
 callback_mode() ->
