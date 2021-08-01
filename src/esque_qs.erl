@@ -43,7 +43,7 @@ put(QName, Partition, Key, Value) ->
 -spec get_last_offset(TableName :: atom()) -> offset().
 get_last_offset(TableName) ->
     case ets:last(TableName) of
-        '$end_of_table' ->
+        '$end_of_table' -> %when there is nothing in the table there is no offset
             -1;
         OffSet ->
             OffSet
