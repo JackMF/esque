@@ -34,7 +34,7 @@ start_consumer() ->
     {ok, Pid} = esque_consumer:start_consumer(?TEST_GROUP, ?TEST_TOPIC, ?TEST_PARTITION),
     {State, #state{topic=Topic, partition=Partition, group=Group, last_offset=LastOffset}} = sys:get_state(Pid),
     ?assertEqual(listen, State), %check the consumer goes into the listening state
-    ?assertEqual(?TEST_TOPIC, Topic), %check the consuemr is listening to the correct topic
+    ?assertEqual(?TEST_TOPIC, Topic), %check the consumer is listening to the correct topic
     ?assertEqual(?TEST_GROUP, Group), %check the consumer is in the correct group
     ?assertEqual(-1, LastOffset), %as the topic has no message this last offset is -1
     ?assertEqual(?TEST_PARTITION, Partition). 

@@ -37,7 +37,6 @@ store_look_up() ->
     ?assertEqual([Pid], esque_reg:get_pids(?TEST_TOPIC, 0)).
     
 
-% update_offset() -> 
 
 
 
