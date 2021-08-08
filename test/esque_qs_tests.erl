@@ -5,10 +5,12 @@
 
 
 test_setup() ->
+    esque_qs:init(),
     esque_reg:init().
 
 test_teardown(_) ->
-    esque_reg:shutdown().
+    esque_reg:shutdown(),
+    esque_qs:shutdown().
 
 all_test_() ->
     {
@@ -18,9 +20,7 @@ all_test_() ->
         [
             {"sharding tables", fun shard/0},
             {"new table test", fun new/0},
-            {"put item in q", fun put/0},
-            {"get all messages from an offset", fun all_messages_from_offset/0},
-            {"get all messages from an offset which doesnt exist", fun all_from_non_existing_offset/0}
+            {"put item in q", fun put/0}
 
         ]
     }.
@@ -52,10 +52,10 @@ put() ->
     esque_qs:put(q_name, 0, <<"some_key1">>, <<"some_value1">>),
 
     %We should find it in the ets table...
-    ?assertEqual([{0, <<"some_key1">>, <<"some_value1">>}], ets:lookup(q_name_0, 0)),
+    ?assertEqual([{<<"some_key1">>, <<"some_value1">>, 0}], ets:lookup(q_name_0, <<"some_key1">>)),
 
     esque_qs:put(q_name, 0, <<"some_key2">>, <<"some_value2">>),
-    ?assertEqual([{1, <<"some_key2">>, <<"some_value2">>}], ets:lookup(q_name_0, 1)),
+    ?assertEqual([{<<"some_key2">>, <<"some_value2">>, 1}], ets:lookup(q_name_0, <<"some_key2">>)),
 
     esque_qs:delete(q_name, 1).
 

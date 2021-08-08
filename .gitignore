@@ -13,3 +13,4 @@ cover
 .erlang.mk/
 test/ct.cover.spec
 doc/
+dets
