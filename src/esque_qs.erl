@@ -16,7 +16,8 @@
 %%Getting items.
 -export(
     [lookup_log_by_offset/3,
-    lookup_store_by_key/3
+    lookup_store_by_key/3,
+    all_messages_from_offset/3
     ]).
 
 -export([shard/2]).
@@ -113,24 +114,21 @@ lookup_log_by_offset(QName, Partition, OffSet) ->
     end.
 
 
+all_messages_from_offset(QName, Partition, OffSet) ->
+    LogName = shard(change_log(QName), Partition), 
+    lists:reverse(all_messages_from_offset_helper(LogName, OffSet, [])).
 
-% -spec all_messages_from_offset(QName :: atom(), Partition :: integer(), Offset :: offset()) -> list(row()).
-% all_messages_from_offset(QName, Partition, Offset) ->
-%     TableName = shard(QName, Partition),
-%     %%We could avoid a reverse here if we were to start at current offset then work backwards to desired out put and prepend.
-%     %That is use ets:prev instead of ets:next
-%     lists:reverse(all_messages_from_offset_helper(TableName, Offset, [])).
-
-% -spec all_messages_from_offset_helper(TableName :: atom(), Offset :: integer()|'$end_of_table', Messages :: list()) -> list().
-% all_messages_from_offset_helper(_TableName, '$end_of_table', Messages) ->
-%     Messages;
-% all_messages_from_offset_helper(TableName, Offset, Messages) ->
-%     case ets:lookup(TableName, Offset) of
-%         [Message] ->
-%             all_messages_from_offset_helper(TableName, ets:next(TableName, Offset), [Message|Messages]);
-%         [] ->
-%             Messages
-%     end.
+all_messages_from_offset_helper(_LogName, '$end_of_table', Messages) ->
+    Messages;
+all_messages_from_offset_helper(LogName, OffSet, Messages) ->
+    case dets:lookup(LogName, OffSet) of
+        [] ->
+            Messages;
+        [Message] ->
+            all_messages_from_offset_helper(LogName, dets:next(LogName, OffSet), [Message|Messages])
+    end.
+    
+    
 
 
 %%%Offsets

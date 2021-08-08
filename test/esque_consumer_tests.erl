@@ -17,8 +17,8 @@ test_setup() ->
    
 
 test_teardown(_) ->
-    esque_qs:shutdown(),
     esque_qs:delete(?TEST_TOPIC, ?TEST_PARTITIONS),
+    esque_qs:shutdown(),
     esque_reg:shutdown().
 
 all_test_() ->

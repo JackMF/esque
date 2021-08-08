@@ -20,8 +20,9 @@ all_test_() ->
         [
             {"sharding tables", fun shard/0},
             {"new table test", fun new/0},
-            {"put item in q", fun put/0}
-
+            {"put item in q", fun put/0},
+            {"all message from offset", fun all_messages_from_offset/0},
+            {"all message from no existing offset", fun all_from_non_existing_offset/0}
         ]
     }.
 
