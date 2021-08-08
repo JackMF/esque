@@ -7,12 +7,14 @@
 
 
 test_setup() ->
+    esque_qs:init(),
     esque_qs:new(?TEST_TOPIC, ?TEST_PARTITIONS),
     esque_reg:init().
    
 
 test_teardown(_) ->
     esque_qs:delete(?TEST_TOPIC, ?TEST_PARTITIONS),
+    esque_qs:shutdown(),
 	esque_reg:shutdown().
 
 all_test_() ->
