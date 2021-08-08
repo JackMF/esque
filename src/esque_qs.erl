@@ -1,16 +1,27 @@
 -module(esque_qs).
 
+
+%%Setup
 -export([
     init/0,
-    shutdown/0,
+    shutdown/0
+]).
+%%Making logs
+-export([
     new/2,
-    delete/2,
-    put/4,
-    shard/2
-    % all_messages_from_offset/3
+    delete/2
+]).
+%%Putting items
+-export([put/4]).
+%%Getting items.
+-export(
+    [lookup_log_by_offset/3,
+    lookup_store_by_key/3
     ]).
 
--define(CHANGELOG, "changelog").
+-export([shard/2]).
+
+-define(CHANGELOG, "log").
 -define(OFFSET_TABLE, offsets).
 
 -define(STORE_ETS_OPTS, [set, named_table, public, {read_concurrency, true}, {write_concurrency, false}]).
@@ -23,6 +34,9 @@
 % -type last_offset() :: integer().
 
 
+
+
+%%%%%%%% Set up %%%%%%
 -spec init() -> ok.
 init() ->
     ?OFFSET_TABLE = ets:new(?OFFSET_TABLE, [set, named_table, public, {read_concurrency, true}, {write_concurrency, false}]),
@@ -31,6 +45,8 @@ init() ->
 shutdown() ->
     ets:delete(?OFFSET_TABLE),
     file:del_dir_r(?DETS_DIR).
+
+
 %Makes a new ets table for QName with Partitions number of partitions.	
 -spec new(QName :: atom(), Partitions :: integer()) -> ok.
 new(QName, Partitions) ->
@@ -56,6 +72,8 @@ delete(QName, Partitions) ->
 
 -spec put(QName :: atom(), Partition :: integer(), 
          Key :: binary(), Value :: binary()) -> ok.
+
+%% Putting items into log and store
 put(QName, Partition, Key, Value) ->
     CurrentOffSet = get_last_offset(QName, Partition), 
     put_log(QName, Partition, Key, Value, CurrentOffSet),
@@ -74,25 +92,27 @@ put_store(QName, Partition, Key, Value, CurrentOffSet) ->
 
 
 
-%%%Offset updates
-get_last_offset(QName, Partition) ->
+
+%%% Looking up items
+lookup_store_by_key(QName, Partition, Key) ->
     StoreName = shard(QName, Partition),
-    [{StoreName, Offset}] = ets:lookup(?OFFSET_TABLE, StoreName),
-    Offset.
-
-update_offset(QName, Partition, NewOffset) ->
-    StoreName = shard(QName, Partition),
-    ets:insert(?OFFSET_TABLE, {StoreName, NewOffset}).
-
-
-
-merge_insert(StoreName, Key, NewValue, NewOffset) ->
     case ets:lookup(StoreName, Key) of
         [] ->
-            true = ets:insert(StoreName, {Key, NewValue, NewOffset});
-        [{Key, Value, _LastOffset}] ->
-            true = ets:insert(StoreName, {Key, maps:merge(Value, NewValue), NewOffset})
+            undefined;
+        [Row] ->
+            Row
     end.
+
+lookup_log_by_offset(QName, Partition, OffSet) ->
+    LogName = shard(change_log(QName), Partition), 
+    case dets:lookup(LogName, OffSet) of
+        [] ->
+            undefined;
+        [Row] ->
+            Row
+    end.
+
+
 
 % -spec all_messages_from_offset(QName :: atom(), Partition :: integer(), Offset :: offset()) -> list(row()).
 % all_messages_from_offset(QName, Partition, Offset) ->
@@ -111,7 +131,28 @@ merge_insert(StoreName, Key, NewValue, NewOffset) ->
 %         [] ->
 %             Messages
 %     end.
-%%%Helpers
+
+
+%%%Offsets
+get_last_offset(QName, Partition) ->
+    StoreName = shard(QName, Partition),
+    [{StoreName, Offset}] = ets:lookup(?OFFSET_TABLE, StoreName),
+    Offset.
+update_offset(QName, Partition, NewOffset) ->
+    StoreName = shard(QName, Partition),
+    ets:insert(?OFFSET_TABLE, {StoreName, NewOffset}).
+
+
+
+%%Helpers    
+merge_insert(StoreName, Key, NewValue, NewOffset) ->
+    case ets:lookup(StoreName, Key) of
+        [] ->
+            true = ets:insert(StoreName, {Key, NewValue, NewOffset});
+        [{Key, Value, _LastOffset}] ->
+            true = ets:insert(StoreName, {Key, maps:merge(Value, NewValue), NewOffset})
+    end.
+
 -spec shard(Name :: atom(), Partition :: integer()) -> atom().
 shard(Name, Partition) ->
     list_to_atom(

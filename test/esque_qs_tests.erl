@@ -51,8 +51,14 @@ put() ->
     %When we put into a q a key and value...
     esque_qs:put(q_name, 0, <<"some_key1">>, <<"some_value1">>),
 
-    %We should find it in the ets table...
-    ?assertEqual([{<<"some_key1">>, <<"some_value1">>, 0}], ets:lookup(q_name_0, <<"some_key1">>)),
+    %We should find it in the store ets table...
+    ?assertEqual({<<"some_key1">>, <<"some_value1">>, 0}, esque_qs:lookup_store_by_key(q_name, 0, <<"some_key1">>)),
+
+
+    % ... and have an entry for it in the log dets table.
+    ?assertEqual({0, <<"some_key1">>, <<"some_value1">>}, esque_qs:lookup_log_by_offset(q_name, 0, 0)),
+
+    
 
     esque_qs:put(q_name, 0, <<"some_key2">>, <<"some_value2">>),
     ?assertEqual([{<<"some_key2">>, <<"some_value2">>, 1}], ets:lookup(q_name_0, <<"some_key2">>)),
