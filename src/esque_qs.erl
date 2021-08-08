@@ -91,9 +91,6 @@ put_store(QName, Partition, Key, Value, CurrentOffSet) ->
     StoreName = shard(QName, Partition),
     merge_insert(StoreName, Key, Value, CurrentOffSet + 1).  
 
-
-
-
 %%% Looking up items
 lookup_store_by_key(QName, Partition, Key) ->
     StoreName = shard(QName, Partition),
@@ -148,7 +145,7 @@ merge_insert(StoreName, Key, NewValue, NewOffset) ->
         [] ->
             true = ets:insert(StoreName, {Key, NewValue, NewOffset});
         [{Key, Value, _LastOffset}] ->
-            true = ets:insert(StoreName, {Key, maps:merge(Value, NewValue), NewOffset})
+            true = ets:insert(StoreName, {Key, esque_merge:deep_merge(Value, NewValue), NewOffset})
     end.
 
 -spec shard(Name :: atom(), Partition :: integer()) -> atom().
