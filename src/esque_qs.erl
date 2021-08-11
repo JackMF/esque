@@ -125,9 +125,6 @@ all_messages_from_offset_helper(LogName, OffSet, Messages) ->
             all_messages_from_offset_helper(LogName, dets:next(LogName, OffSet), [Message|Messages])
     end.
     
-    
-
-
 %%%Offsets
 get_last_offset(QName, Partition) ->
     StoreName = shard(QName, Partition),
@@ -136,8 +133,6 @@ get_last_offset(QName, Partition) ->
 update_offset(QName, Partition, NewOffset) ->
     StoreName = shard(QName, Partition),
     ets:insert(?OFFSET_TABLE, {StoreName, NewOffset}).
-
-
 
 %%Helpers    
 merge_insert(StoreName, Key, NewValue, NewOffset) ->

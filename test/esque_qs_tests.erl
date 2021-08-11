@@ -21,8 +21,10 @@ all_test_() ->
             {"sharding tables", fun shard/0},
             {"new table test", fun new/0},
             {"put item in q", fun put/0},
+            {"two messages with same key", fun put_twice/0},
             {"all message from offset", fun all_messages_from_offset/0},
             {"all message from no existing offset", fun all_from_non_existing_offset/0}
+
         ]
     }.
 
@@ -36,11 +38,12 @@ new() ->
     %When we create a q with three partitions....
     esque_qs:new(q_name, 3),
 
-    %...we should make 3 ets tables corresponding to the ets tables
+    %...we should make 3 ets tables corresponding to the "store"
     [?assertEqual([], ets:tab2list(q_name_0)),
      ?assertEqual([], ets:tab2list(q_name_1)),
      ?assertEqual([], ets:tab2list(q_name_2))
      ],
+
      esque_qs:delete(q_name, 3).
     
 
@@ -48,21 +51,27 @@ put() ->
     %Making a q with one partition
     esque_qs:new(q_name, 1),
 
-
     %When we put into a q a key and value...
-    esque_qs:put(q_name, 0, <<"some_key1">>, <<"some_value1">>),
+    esque_qs:put(q_name, 0, <<"some_key1">>, #{1 => 2}),
 
     %We should find it in the store ets table...
-    ?assertEqual({<<"some_key1">>, <<"some_value1">>, 0}, esque_qs:lookup_store_by_key(q_name, 0, <<"some_key1">>)),
-
+    ?assertEqual({<<"some_key1">>, #{1 => 2}, 0}, esque_qs:lookup_store_by_key(q_name, 0, <<"some_key1">>)),
 
     % ... and have an entry for it in the log dets table.
-    ?assertEqual({0, <<"some_key1">>, <<"some_value1">>}, esque_qs:lookup_log_by_offset(q_name, 0, 0)),
+    ?assertEqual({0, <<"some_key1">>, #{1 => 2}}, esque_qs:lookup_log_by_offset(q_name, 0, 0)),
 
-    
+    esque_qs:delete(q_name, 1).
 
-    esque_qs:put(q_name, 0, <<"some_key2">>, <<"some_value2">>),
-    ?assertEqual([{<<"some_key2">>, <<"some_value2">>, 1}], ets:lookup(q_name_0, <<"some_key2">>)),
+
+
+put_twice() ->
+    %Making a q with one partition
+    esque_qs:new(q_name, 1),
+    esque_qs:put(q_name, 0, <<"some_key1">>, #{1 => 2}),
+    esque_qs:put(q_name, 0, <<"some_key1">>, #{2 => 3}),
+
+    % ... and have an entry for it in the log dets table.
+    ?assertEqual({<<"some_key1">>, #{1 => 2, 2=>3}, 1}, esque_qs:lookup_store_by_key(q_name, 0, <<"some_key1">>)),
 
     esque_qs:delete(q_name, 1).
 
