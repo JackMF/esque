@@ -1,63 +1,89 @@
 -module(esque_consumer).
--behaviour(gen_statem).
--include_lib("consumer_state.hrl").
 
-%
+-export([init/2]).
+-export([websocket_init/1]).
+-export([websocket_handle/2]).
+-export([websocket_info/2]).
 
-%API
--export([start_consumer/3,
-        send/3]).
-%% Callbacks
--export([
-    callback_mode/0,
-    init/1,
-    catch_up/3,
-    listen/3,
-    terminate/2
-]).
+init(Req, Opts) ->
+	{cowboy_websocket, Req, Opts}.
 
-%%Api
-send(Topic, Partition, Msgs) ->
-    lists:foreach(
-        fun(ConsumerPid) -> 
-            gen_statem:cast(ConsumerPid, {send, Msgs}) 
-        end, 
-        esque_reg:get_pids(Topic, Partition)
-    ).
+websocket_init(State) ->
+	erlang:start_timer(1000, self(), <<"Hello!">>),
+	{[], State}.
+
+websocket_handle({text, Msg}, State) ->
+	{[{text, << "That's what she said! ", Msg/binary >>}], State};
+websocket_handle(_Data, State) ->
+	{[], State}.
+
+websocket_info({timeout, _Ref, Msg}, State) ->
+	erlang:start_timer(1000, self(), <<"How' you doin'?">>),
+	{[{text, Msg}], State};
+websocket_info(_Info, State) ->
+	{[], State}.
 
 
-callback_mode() ->
-    [state_functions, state_enter].
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
-start_consumer(Group, Topic, Partition) ->
-    {ok, Pid} = gen_statem:start_link(?MODULE, [Group, Topic, Partition], []),
-    true = esque_reg:reg_consumer(Topic, Partition, Group, Pid),
-    {ok, Pid}.
+% -behaviour(gen_statem).
+% -include_lib("consumer_state.hrl").
 
-init([Group, Topic, Partition]) ->
-    process_flag(trap_exit, true),
-    {ok, catch_up, #state{group=Group, topic=Topic, partition=Partition, last_offset=-1}}.
 
-catch_up(enter, _OldState, _State) ->
-    {keep_state_and_data, {state_timeout, 0, send_batch}};
-catch_up(state_timeout, send_batch, #state{group=_Group, topic=Topic, partition=Partition,  last_offset=Offset}=State) ->
-    Rows = esque_qs:all_messages_from_offset(Topic, Partition, Offset),
-    send_batch(Rows),
-    {next_state, listen, State}.   
-listen(enter, _OldState, _State) ->
-    keep_state_and_data;
-listen(cast, {send, Msgs} , #state{group=Group, topic=Topic, partition=Partition}=State) ->
-    %When get some msgs send them and update our offset
-    send_batch(Msgs),
-    {LastOffset, _, _} = lists:last(Msgs),
-    esque_reg:update_offset(Group, Topic, Partition, LastOffset),
-    {keep_state, State#state{last_offset=LastOffset}}.
+% %API
+% -export([start_consumer/3,
+%         send/3]).
+% %% Callbacks
+% -export([
+%     callback_mode/0,
+%     init/1,
+%     catch_up/3,
+%     listen/3,
+%     terminate/2
+% ]).
+
+% %%Api
+% send(Topic, Partition, Msgs) ->
+%     lists:foreach(
+%         fun(ConsumerPid) -> 
+%             gen_statem:cast(ConsumerPid, {send, Msgs}) 
+%         end, 
+%         esque_reg:get_pids(Topic, Partition)
+%     ).
+
+
+% callback_mode() ->
+%     [state_functions, state_enter].
+
+% start_consumer(Group, Topic, Partition) ->
+%     {ok, Pid} = gen_statem:start_link(?MODULE, [Group, Topic, Partition], []),
+%     true = esque_reg:reg_consumer(Topic, Partition, Group, Pid),
+%     {ok, Pid}.
+
+% init([Group, Topic, Partition]) ->
+%     process_flag(trap_exit, true),
+%     {ok, catch_up, #state{group=Group, topic=Topic, partition=Partition, last_offset=-1}}.
+
+% catch_up(enter, _OldState, _State) ->
+%     {keep_state_and_data, {state_timeout, 0, send_batch}};
+% catch_up(state_timeout, send_batch, #state{group=_Group, topic=Topic, partition=Partition,  last_offset=Offset}=State) ->
+%     Rows = esque_qs:all_messages_from_offset(Topic, Partition, Offset),
+%     send_batch(Rows),
+%     {next_state, listen, State}.   
+% listen(enter, _OldState, _State) ->
+%     keep_state_and_data;
+% listen(cast, {send, Msgs} , #state{group=Group, topic=Topic, partition=Partition}=State) ->
+%     %When get some msgs send them and update our offset
+%     send_batch(Msgs),
+%     {LastOffset, _, _} = lists:last(Msgs),
+%     esque_reg:update_offset(Group, Topic, Partition, LastOffset),
+%     {keep_state, State#state{last_offset=LastOffset}}.
      
-send_batch(Rows) ->
-    io:format("Send rows ~p", [Rows]).
+% send_batch(Rows) ->
+%     io:format("Send rows ~p", [Rows]).
 
 
-terminate(_Reason, State) ->
-    io:format("~p was terminated~n", [State]),
-    ok.
+% terminate(_Reason, State) ->
+%     io:format("~p was terminated~n", [State]),
+%     ok.
     

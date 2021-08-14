@@ -11,6 +11,7 @@ start_link() ->
 
 init({}) ->
     esque_reg:init(), %Starting consumer registry
+    esque_api:start(),
     {ok,
         {
             % Restart strategy
@@ -21,14 +22,14 @@ init({}) ->
             },
             % Children
             [
-                #{
-                id       => consumer_sup,
-                start    => {esque_consumer_sup, start_link, []},
-                restart  => permanent,
-                shutdown => 5000,
-                type     => supervisor,
-                modules  => [exorom_batch_producer_sup]
-            }
+            %     #{
+            %     id       => consumer_sup,
+            %     start    => {esque_consumer_sup, start_link, []},
+            %     restart  => permanent,
+            %     shutdown => 5000,
+            %     type     => supervisor,
+            %     modules  => [exorom_batch_producer_sup]
+            % }
 
             ]
         }
